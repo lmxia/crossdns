@@ -1,0 +1,6 @@
+clusterset.local:53 {
+    crossdns
+    errors
+    health
+    ready
+    }
