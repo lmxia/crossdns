@@ -1,4 +1,21 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: crossdns
+    component: crossdns
+  name: crossdns
+  namespace: lmxia
+data:
+  Corefile: |
+    clusterset.local:53 {
+        crossdns
+        errors
+        health
+        ready
+    }
+---
+apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -34,8 +51,22 @@ spec:
         app: crossdns
     spec:
       containers:
-        - name: crossdns
-          image: lmxia/crossdns:v1
-          env:
+      - args:
+          - -conf
+          - /etc/coredns/Corefile
+        name: crossdns
+        image: lmxia/crossdns:v1
+        volumeMounts:
+          - mountPath: /etc/coredns
+            name: config-volume
+            readOnly: true
       serviceAccount: syncer
       serviceAccountName: syncer
+      volumes:
+        - configMap:
+            defaultMode: 420
+            items:
+              - key: Corefile
+                path: Corefile
+            name: crossdns
+          name: config-volume
